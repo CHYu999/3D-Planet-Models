@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset=utf-8>
+        
+        <title>Lab</title>
+        <script src="js/three.min.js"></script>
+        <script src="jquery.min.js"></script>
+        <!--若要設定響應式網頁設計，要先偵測畫面的大小，才能夠透過bootstrap去設定他的樣式-->
+        <meta name="viewport" content="width=device-width">
+        <link href="css/bootstrap.min.css" rel="stylesheet">
+        
+        <style type="text/css">
+        
+            @media screen and (max-width: 700px) {
+                select {
+                    width : 100px;
+                    height : 30px;
+                }
+                
+                button {
+                    width : 100px;
+                    height : 30px;
+                }
+            }
+        
+            #slt {
+                background-color : black;
+            }
+            
+            #cinema {
+                padding-left : 4.3%;
+            }
+            
+            #btn {
+            }
+            
+            
+            .img {
+                border : 2px solid blue;
+                display:none;
+                position:absolute;
+                top:8%;
+                width:80%;
+                height: 80%;
+                margin-left: 9%;
+            }
+        </style>
+    </head>
+    <body>
+        
+    <div id="slt">
+    <form method="post" action="http://exec.hostzi.com/echo.php">
+		<select name="letter" id="letter" height="20px">
+		    <option value="-1">-Select-</option>
+			<option value="0">Sun</option>
+			<option value="1">Mercury</option>
+			<option value="2">Venus</option>
+			<option value="3">Earth</option>
+			<option value="4">Moon</option>
+			<option value="5">Mars</option>
+			<option value="6">Jupiter</option>
+			<option value="7">Saturn</option>
+			<option value="8">Uranus</option>
+			<option value="9">Neptune</option>
+			<option value="10">Pluto</option>
+		</select>
+		<button id="btn" type="button" onclick="showImg()">Click me to show information</button>
+		
+	</form>
+	    <img class="img" src="images/info/sun-info.JPG"/>
+	    <!--<button id="btn" type="button" onclick="showImg()">Information</button>-->
+     <!--   <img class="img" src="images/sun-info.jpg"/>-->
+        
+        
+        <div id="cinema">
+        </div>
+        
+	</div>
+	
+	    
+        
+        
+        <script>
+        
+        function showImg(){
+            $('.img').show();
+        }
+        $('.img').click(function(){
+            $('.img').hide();
+        });     
+
+        // 建立所有照片的名稱陣列
+        list = ["images/8k_sun.jpg", "images/8k_mercury.jpg", "images/8k_venus_surface.jpg", "images/8k_earth_daymap.jpg", "images/8k_moon.jpg",
+                "images/8k_mars.jpg", "images/8k_jupiter.jpg", "images/8k_saturn.jpg", "images/2k_uranus.jpg", "images/2k_neptune.jpg", "images/pluto.png"]
+                
+        infolist = ["images/info/sun-info.JPG", "images/info/mercury-info.JPG", "images/info/venus-info.JPG", "images/info/earth-info.JPG",
+                    "images/info/moon-info.JPG", "images/info/mars-info.JPG", "images/info/jupiter-info.JPG", "images/info/saturn-info.JPG",
+                    "images/info/uranus-info.JPG", "images/info/neptune-info.JPG", "images/info/pluto-info.JPG"]
+        // 先引入第一張顯示的照片名稱
+        var planetname = "images/8k_sun.jpg"
+        
+        // 由於設定的-select-選項是預設值，並且不會再讓人選擇，因此將它選擇隱藏
+        $("#letter option[value='-1']").hide();
+        
+        // 當下拉式選單被選擇時，將選擇的目標對應的圖片設定成材質，並將其繪製成3D行星模型。
+        $("#letter").on("change", function() {
+            var target = $("#letter option:selected");
+			var target_name = target.text()
+			var target_index = target.prop("value")
+			
+			planetname =list[target_index]
+			
+			
+			$(".img").prop("src", infolist[$("#letter option:selected").prop("value")])
+            
+            
+			show3dplanet();
+        })
+        
+
+        // 建立渲染器 Renderer
+        const renderer = new THREE.WebGLRenderer();
+        // 設定渲染器渲染範圍
+        renderer.setSize(window.innerWidth * 0.9, window.innerHeight * 0.9);
+        // 將渲染元素加入 body
+        document.getElementById('cinema').appendChild(renderer.domElement);
+        
+        
+        function show3dplanet() {
+        
+        // 設定場景
+        var scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x000000);
+            
+        // 建立照相機
+        // 在3D的環境中可以把它當成視角, 我們可以給它定位、關注點, 也可以搭配相機的位置角度來達到畫面移動的效果
+        // PerspectiveCamera的第一個參數是改變相機位置，數字越小離物體越近。第二個參數為球體半長軸與半短軸的比例。
+        const camera = new THREE.PerspectiveCamera(40, window.innerWidth  / window.innerHeight, 0.1, 10000);
+        camera.position.set(lx = 0, ly = 0, FOV = 700);
+        scene.add(camera);
+            
+        // 判斷若是選單選中的目標不為-select-時，將場景中的mesh移除，以利新的行星材質使用
+        if ($("#letter option:selected").prop("value") != -1) {
+            
+            scene.remove(mesh);
+            
+        }
+        
+        // 建立一個3D圓球並且加入變數名稱為planetname的材質圖片。
+        var sphere = new THREE.SphereGeometry(200, 360, 360, 0, Math.PI * 2, 0, Math.PI);
+        var material = new THREE.MeshNormalMaterial();
+        var mesh = new THREE.Mesh(sphere, material);
+        mesh.position.z = -300;   //z軸為螢幕的垂直方向(入螢幕跟出螢幕)
+        scene.add(mesh);
+        
+        
+        
+        var loader = new THREE.TextureLoader();
+        loader.load(planetname, function(texture) {
+        mesh.material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
+        
+        // 在場景及相機對應的地方渲染出3D圖形
+        renderer.render(scene, camera);});
+        
+        var bg_plane = new THREE.PlaneGeometry(5000, 5000, 50, 50)
+        var bg_material = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 1  } );
+        var mesh2 = new THREE.Mesh(bg_plane, bg_material);
+        mesh2.position.z = -800;
+        scene.add(mesh2)
+        
+        var loader = new THREE.TextureLoader();
+        loader.load("images/Star-field-hubble-deep.jpg", function(texture) {
+        mesh2.material = new THREE.MeshBasicMaterial({ map: texture, overdraw: 0.5 });
+        renderer.render(scene, camera);
+        });
+            
+        // 由於土星向對於其他行星多了環狀構造，因此必須額外畫出土星環，所以當下拉式選單選到土星時，建立一個新的畫圖方式。
+        if ($("#letter option:selected").prop("value") == 7) {
+
+            // 建立一個環狀結構，並且套用土星環的材質
+            radius = 250
+            var geometry1 = new THREE.RingGeometry( 1.11 * radius, 2.3 * radius, 200, 5, 0, Math.PI * 2 );
+            var material1 = new THREE.MeshBasicMaterial( { color: 0xffffff, side: THREE.DoubleSide, transparent: true, opacity: 0.2  } );
+            var mesh1 = new THREE.Mesh( geometry1, material1 );
+            mesh1.position.z = -300;
+            scene.add( mesh1 );
+        
+            
+            var loader1 = new THREE.TextureLoader();
+            loader1.load("images/saturn-ring.png", function(texture) {
+            mesh1.material = new THREE.MeshBasicMaterial({ map: texture, side: THREE.DoubleSide, transparent: true, opacity: 0.4})
+            // 由於建出來的環狀結構無法在建立時就設定畫的角度，因此需要將環翻轉90度，才能符合環在土星赤道上的正確位置。
+            mesh1.rotation.x = Math.PI / 2;
+            renderer.render(scene, camera);
+            });
+            
+        }   // Saturn if 的結尾
+
+            
+        
+        
+        requestAnimationFrame(doRender);
+        function doRender() {
+            try { 
+                // 設定土星與土星環的自轉動作。
+                mesh.rotation.y += Math.PI / 1000; 
+                mesh1.rotation.z -= Math.PI / 1000;
+            } 
+            catch (e) { };
+            renderer.render(scene, camera);
+            requestAnimationFrame(doRender);
+        }
+        
+        // 設定鍵盤操控行星轉動。
+        document.onkeydown = function (e) {
+            switch (event.keyCode) {
+                case 38: // up
+                    mesh.rotation.x -= Math.PI / 30;
+                    mesh1.rotation.x -= Math.PI / 30;
+                    break;
+                case 40: // down
+                    mesh.rotation.x += Math.PI / 30;
+                    mesh1.rotation.x += Math.PI / 30;
+                    break;
+                case 37: // left
+                    mesh.rotation.y -= Math.PI / 30;
+                    mesh1.rotation.z += Math.PI / 30;
+                    break;
+                case 39: // right
+                    mesh.rotation.y += Math.PI / 30;
+                    mesh1.rotation.z -= Math.PI / 30;
+                    break;
+                    
+                    
+                case 104: // up
+                    camera.position.set(lx, ly - 20, FOV);
+                    ly -= 20;
+                    break;
+                case 98: // down
+                    camera.position.set(lx, ly + 20, FOV);
+                    ly += 20;
+                    break;
+                case 100: // left
+                    camera.position.set(lx + 20, ly, FOV);
+                    lx += 20;
+                    break;
+                case 102: // right
+                    camera.position.set(lx - 20, ly, FOV);
+                    lx -= 20;
+                    break;
+            }
+            event.preventDefault();
+        }
+        
+        
+        // 設定滑鼠控制行星轉動
+        var lastMove = {
+            x: (window.innerWidth) / 2,
+            y: (window.innerHeight) / 2
+        };
+
+        var isMouseDown = false;
+
+        document.onmousedown = function() {
+            isMouseDown = true;
+            lastMove.x = event.clientX;
+            lastMove.y = event.clientY;
+        }
+
+        document.onmouseup = function() {
+            isMouseDown = false;
+        }
+
+        document.onmousemove = function() {
+            if (isMouseDown == false) {
+                return;
+            }
+            var moveX = event.clientX - lastMove.x;
+            var moveY = event.clientY - lastMove.y;
+
+            mesh.rotation.y += moveX * 0.0002;
+            mesh.rotation.x += moveY * 0.0002;
+
+            mesh1.rotation.z -= moveX * 0.0002;
+            mesh1.rotation.x += moveY * 0.0002;
+            
+            lastMove.x = e.clientX;
+            lastMove.y = e.clientY;
+        }
+        
+        document.onmousewheel = function (e) {
+            if (e.wheelDelta < 0) {
+                camera.position.set(lx, ly, FOV + 40);
+                FOV +=40;
+            }
+            if (e.wheelDelta > 0) {
+                camera.position.set(lx, ly, FOV - 40);
+                FOV -=40;
+            }
+        }
+
+        }
+        
+        
+        
+        show3dplanet();
+        
+        </script>
+        
+        <script>
+            $("#infobtn").on("click", showinfo)
+            
+            function showinfo () {
+                window.showImg('http://reneeperez.com/_cache/3-big.jpg');
+                
+            }
+        </script>
+    </body>
+</html>
